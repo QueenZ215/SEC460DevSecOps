@@ -1,0 +1,39 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to App VM
+    runs-on: [self-hosted, nightwatch]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync code to app VM
+        run: |
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude '.env' \
+            --exclude '*.pyc' \
+            --exclude '__pycache__' \
+            --exclude 'venv/' \
+            --exclude 'nightwatch.db' \
+            -e "ssh -i $HOME/.ssh/nightwatch_deploy -o StrictHostKeyChecking=no" \
+            ./ deploy@10.3.0.90:/opt/nightwatch/
+
+      - name: Install dependencies
+        run: |
+          ssh -i $HOME/.ssh/nightwatch_deploy \
+            -o StrictHostKeyChecking=no \
+            deploy@10.3.0.90 \
+            "cd /opt/nightwatch && source venv/bin/activate && pip install -r requirements.txt -q"
+
+      - name: Restart app
+        run: |
+          ssh -i $HOME/.ssh/nightwatch_deploy \
+            -o StrictHostKeyChecking=no \
+            deploy@10.3.0.90 \
+            "systemctl --user restart nightwatch"

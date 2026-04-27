@@ -1,0 +1,55 @@
+name: Nightwatch CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  secrets-scan:
+    name: Secrets Scan (gitleaks)
+    runs-on: [self-hosted, nightwatch]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast:
+    name: SAST (Bandit)
+    runs-on: [self-hosted, nightwatch]
+    needs: secrets-scan
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install bandit
+      - run: bandit -r app/ -ll
+
+  dependency-scan:
+    name: Dependency Scan (pip-audit)
+    runs-on: [self-hosted, nightwatch]
+    needs: secrets-scan
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pip-audit
+      - run: pip-audit -r requirements.txt
+
+  deploy:
+    name: Deploy to App VM
+    runs-on: [self-hosted, nightwatch]
+    needs: [sast, dependency-scan]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync code to app VM
+        run: |
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude '.env' \
+            --exclude '*.pyc' \
+            ./ runner@10.3.0.90:/home/nightwatch/app/
+      - name: Restart app service
+        run: ssh runner@10.3.0.90 "sudo systemctl restart nightwatch"
