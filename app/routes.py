@@ -16,12 +16,12 @@ def index():
 
     conn = get_db()
     if severity_clean:
-        cves = conn.execute( # nosec B608 -- order is whitelisted to ASC/DESC only
-            "SELECT * FROM cves WHERE severity = ? ORDER BY cvss_score " + order,
+        cves = conn.execute( 
+            "SELECT * FROM cves WHERE severity = ? ORDER BY cvss_score " + order, # nosec B608
             (severity_clean.upper(),)
         ).fetchall()
     else:
-        cves = conn.execute( # nosec B608 -- order is whitelisted to ASC/DESC only
-            "SELECT * FROM cves ORDER BY cvss_score " + order
+        cves = conn.execute( 
+            "SELECT * FROM cves ORDER BY cvss_score " + order # nosec B608
         ).fetchall()
     conn.close()
