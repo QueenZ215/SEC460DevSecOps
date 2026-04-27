@@ -25,7 +25,7 @@ jobs:
     needs: secrets-scan
     steps:
       - uses: actions/checkout@v4
-      - run: pip install bandit
+      - run: pip3 install bandit
       - run: bandit -r app/ -ll
 
   dependency-scan:
@@ -34,7 +34,7 @@ jobs:
     needs: secrets-scan
     steps:
       - uses: actions/checkout@v4
-      - run: pip install pip-audit
+      - run: pip3 install pip-audit
       - run: pip-audit -r requirements.txt
 
   deploy:
