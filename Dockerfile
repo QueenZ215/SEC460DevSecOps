@@ -1,6 +1,6 @@
 FROM python:3.12-alpine
 
-RUN useradd -m -u 1001 nightwatch
+RUN adduser -D -u 1001 nightwatch
 
 WORKDIR /app
 COPY requirements.txt .
