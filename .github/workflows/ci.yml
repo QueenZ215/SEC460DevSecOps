@@ -87,12 +87,4 @@ jobs:
         run: |
           docker rm -f nightwatch-test || true
           docker rmi nightwatch:${{ github.sha }} || true
-          
-    cleanup:
-        name: Clean up Docker
-        runs-on: [self-hosted, nightwatch]
-        needs: [dast]
-        if: always()
-        steps:
-            - name: Prune Docker
-            run: docker system prune -af --filter "until=24h"
+   
