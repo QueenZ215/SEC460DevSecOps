@@ -1,0 +1,65 @@
+name: Nightwatch CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  secrets-scan:
+    name: Secrets Scan (gitleaks)
+    runs-on: [self-hosted, nightwatch]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  sast:
+    name: SAST (Bandit)
+    runs-on: [self-hosted, nightwatch]
+    needs: secrets-scan
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Bandit
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install bandit -q
+          .venv/bin/bandit -r app/ -ll
+
+  dependency-scan:
+    name: Dependency Scan (pip-audit)
+    runs-on: [self-hosted, nightwatch]
+    needs: secrets-scan
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run pip-audit
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install pip-audit -q
+          .venv/bin/pip-audit -r requirements.txt
+
+  container-scan:
+    name: Container Scan (Trivy)
+    runs-on: [self-hosted, nightwatch]
+    needs: [sast, dependency-scan]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t nightwatch:${{ github.sha }} .
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: nightwatch:${{ github.sha }}
+          format: table
+          exit-code: "1"
+          severity: CRITICAL,HIGH
+      - name: Clean up image
+        if: always()
+        run: docker rmi nightwatch:${{ github.sha }} || true
+
+   

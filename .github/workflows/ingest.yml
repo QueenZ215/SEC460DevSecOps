@@ -1,0 +1,20 @@
+name: Daily CVE Ingestion
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    name: Pull CVEs from NVD
+    runs-on: [self-hosted, nightwatch]
+    steps:
+      - name: Run ingestion on app VM
+        run: |
+          ssh -i $HOME/.ssh/nightwatch_deploy \
+            -o StrictHostKeyChecking=no \
+            deploy@10.3.0.90 \
+            "cd /opt/nightwatch && \
+             source venv/bin/activate && \
+             NVD_API_KEY=${{ secrets.NVD_API_KEY }} python scripts/ingest.py"
