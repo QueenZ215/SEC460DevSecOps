@@ -25,3 +25,4 @@ def index():
             "SELECT * FROM cves ORDER BY cvss_score " + order # nosec B608
         ).fetchall()
     conn.close()
+    return render_template("index.html", cves=cves, sort=sort, severity=severity)
