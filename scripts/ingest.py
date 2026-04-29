@@ -3,6 +3,8 @@ import sqlite3
 import requests
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 load_dotenv()
 
@@ -34,7 +36,10 @@ def fetch_cves():
         "pubEndDate":   end.strftime("%Y-%m-%dT%H:%M:%S.000"),
         "resultsPerPage": 100,
     }
-    resp = requests.get(BASE_URL, params=params, headers=headers, timeout=30)
+    session = requests.Session()
+    retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
+    session.mount("https://", HTTPAdapter(max_retries=retry))
+    resp = session.get(BASE_URL, params=params, headers=headers, timeout=60)
     resp.raise_for_status()
     return resp.json().get("vulnerabilities", [])
 

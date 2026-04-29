@@ -11,6 +11,7 @@ jobs:
     runs-on: [self-hosted, nightwatch]
     steps:
       - name: Run ingestion on app VM
+        continue-on-error: true
         run: |
           ssh -i $HOME/.ssh/nightwatch_deploy \
             -o StrictHostKeyChecking=no \
