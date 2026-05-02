@@ -11,40 +11,29 @@ def index():
     sort = request.args.get("sort", "desc")
     severity = request.args.get("severity", "all")
 
-    # whitelist both user-supplied values before they touch anything
+    VALID_SEVERITIES = {"critical", "high", "medium", "low"}
+
     order = "DESC" if sort == "desc" else "ASC"
+
     severity_clean = (
-        severity.lower() if severity.lower() in VALID_SEVERITIES else None
+        severity.lower()
+        if severity.lower() in VALID_SEVERITIES
+        else None
     )
 
     conn = get_db()
 
-    if severity_clean:
-        cves = conn.execute(
-            "SELECT * FROM cves WHERE severity = ? ORDER BY cvss_score "
-            + order,
-            (severity_clean.upper(),),
-        ).fetchall()
+    if order == "DESC":
+        order_clause = " ORDER BY cvss_score DESC"
     else:
-        cves = conn.execute(
-            "SELECT * FROM cves ORDER BY cvss_score " + order
-        ).fetchall()
+        order_clause = " ORDER BY cvss_score ASC"
 
-    critical_count = conn.execute(
-        "SELECT COUNT(*) FROM cves WHERE severity = 'CRITICAL'"
-    ).fetchone()[0]
-
-    high_count = conn.execute(
-        "SELECT COUNT(*) FROM cves WHERE severity = 'HIGH'"
-    ).fetchone()[0]
-
-    medium_count = conn.execute(
-        "SELECT COUNT(*) FROM cves WHERE severity = 'MEDIUM'"
-    ).fetchone()[0]
-
-    low_count = conn.execute(
-        "SELECT COUNT(*) FROM cves WHERE severity = 'LOW'"
-    ).fetchone()[0]
+    if severity_clean:
+        query = "SELECT * FROM cves WHERE severity = ?" + order_clause
+        cves = conn.execute(query, (severity_clean.upper(),)).fetchall()
+    else:
+        query = "SELECT * FROM cves" + order_clause
+        cves = conn.execute(query).fetchall()
 
     conn.close()
 
@@ -52,9 +41,5 @@ def index():
         "index.html",
         cves=cves,
         sort=sort,
-        severity=severity,
-        critical_count=critical_count,
-        high_count=high_count,
-        medium_count=medium_count,
-        low_count=low_count,
+        severity=severity
     )
