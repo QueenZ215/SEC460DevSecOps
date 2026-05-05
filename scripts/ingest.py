@@ -3,15 +3,30 @@ import sqlite3
 import requests
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 load_dotenv()
-
-# Create the database if it doesn't exist
-init_db()
 
 DB_PATH = "nightwatch.db"
 API_KEY = os.getenv("NVD_API_KEY")
 BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
+
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS cves (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            cve_id        TEXT UNIQUE,
+            description   TEXT,
+            cvss_score    REAL,
+            severity      TEXT,
+            published     TEXT,
+            last_modified TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
 
 def score_to_severity(score):
     if score is None:
@@ -68,6 +83,7 @@ def save(vulns):
     print(f"Saved {saved} of {len(vulns)} CVEs")
 
 if __name__ == "__main__":
+    init_db()
     print("Fetching from NVD...")
     vulns = fetch_cves()
     print(f"Found {len(vulns)} CVEs")
