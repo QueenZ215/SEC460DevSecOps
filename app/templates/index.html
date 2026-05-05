@@ -3,49 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <title>Nightwatch</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: monospace; background: #0d1117; color: #c9d1d9; padding: 2rem; }
-    h1 { color: #58a6ff; font-size: 1.8rem; margin-bottom: .25rem; }
-    .sub { color: #8b949e; font-size: .9rem; margin-bottom: 1.5rem; }
-    .controls { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; align-items: center; }
-    .label { color: #8b949e; font-size: .85rem; }
-    a.btn {
-      color: #c9d1d9; background: #21262d; border: 1px solid #30363d;
-      padding: .3rem .7rem; border-radius: 6px; text-decoration: none; font-size: .85rem;
-    }
-    a.btn.active, a.btn:hover { background: #58a6ff; color: #0d1117; border-color: #58a6ff; }
-    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-    th { background: #161b22; color: #8b949e; padding: .6rem 1rem; text-align: left;
-         border-bottom: 1px solid #30363d; font-weight: normal; }
-    td { padding: .6rem 1rem; border-bottom: 1px solid #21262d; vertical-align: top; }
-    tr:hover td { background: #161b22; }
-    .CRITICAL { color: #ff7b72; } .HIGH { color: #ffa657; }
-    .MEDIUM   { color: #e3b341; } .LOW  { color: #3fb950; }
-    .UNKNOWN  { color: #8b949e; }
-    .badge { padding: .15rem .5rem; border-radius: 12px; font-size: .75rem; font-weight: bold; }
-    .badge.CRITICAL { background:#3d1a1a; color:#ff7b72; }
-    .badge.HIGH     { background:#3d2a1a; color:#ffa657; }
-    .badge.MEDIUM   { background:#3d351a; color:#e3b341; }
-    .badge.LOW      { background:#1a3d22; color:#3fb950; }
-    .badge.UNKNOWN  { background:#21262d; color:#8b949e; }
-    .desc { color: #8b949e; max-width: 480px; line-height: 1.4; }
-    .date { color: #8b949e; white-space: nowrap; }
-    .empty { text-align:center; padding: 4rem; color: #8b949e; }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.25rem;">
-    <h1>🌙 Nightwatch</h1>
-    <a href="/logout" style="color:#8b949e; font-size:.85rem; text-decoration:none;">sign out</a>
+  <div class="page-header">
+    <h1 class="page-title">🌙 Nightwatch</h1>
+    <a href="/logout" class="btn-signout">sign out</a>
   </div>
-  <p class="sub">{{ cves|length }} CVEs &nbsp;·&nbsp; sorted {{ sort }}ending by score</p>
+  <p class="page-subtitle">{{ cves|length }} CVEs &nbsp;·&nbsp; sorted {{ sort }}ending by score</p>
 
   <div class="controls">
-    <span class="label">sort:</span>
+    <span class="controls-label">sort:</span>
     <a class="btn {{ 'active' if sort == 'desc' }}" href="?sort=desc&severity={{ severity }}">highest first</a>
     <a class="btn {{ 'active' if sort == 'asc'  }}" href="?sort=asc&severity={{ severity }}">lowest first</a>
-    <span class="label" style="margin-left:.5rem">severity:</span>
+    <span class="controls-label">severity:</span>
     <a class="btn {{ 'active' if severity == 'all'      }}" href="?sort={{ sort }}&severity=all">all</a>
     <a class="btn {{ 'active' if severity == 'critical' }}" href="?sort={{ sort }}&severity=critical">critical</a>
     <a class="btn {{ 'active' if severity == 'high'     }}" href="?sort={{ sort }}&severity=high">high</a>
@@ -56,14 +27,19 @@
   {% if cves %}
   <table>
     <thead>
-      <tr><th>CVE ID</th><th>Score</th><th>Severity</th><th>Published</th><th>Description</th></tr>
+      <tr>
+        <th>CVE ID</th>
+        <th>Score</th>
+        <th>Severity</th>
+        <th>Published</th>
+        <th>Description</th>
+      </tr>
     </thead>
     <tbody>
       {% for c in cves %}
       <tr>
-        <td><a href="https://nvd.nist.gov/vuln/detail/{{ c.cve_id }}"
-               target="_blank" style="color:#58a6ff">{{ c.cve_id }}</a></td>
-        <td class="{{ c.severity }} score">{{ c.cvss_score or '—' }}</td>
+        <td><a class="cve-link" href="https://nvd.nist.gov/vuln/detail/{{ c.cve_id }}" target="_blank">{{ c.cve_id }}</a></td>
+        <td class="score {{ c.severity }}">{{ c.cvss_score or '—' }}</td>
         <td><span class="badge {{ c.severity }}">{{ c.severity }}</span></td>
         <td class="date">{{ c.published[:10] if c.published else '—' }}</td>
         <td class="desc">{{ c.description[:140] }}{% if c.description|length > 140 %}…{% endif %}</td>
@@ -74,7 +50,7 @@
   {% else %}
   <div class="empty">
     <p>No CVEs yet.</p>
-    <p style="margin-top:.5rem;font-size:.85rem">Run <code>python scripts/ingest.py</code> to pull from NVD.</p>
+    <p >Run <code>python scripts/ingest.py</code> to pull from NVD.</p>
   </div>
   {% endif %}
 </body>
