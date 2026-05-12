@@ -25,8 +25,21 @@ def init_db():
             id            INTEGER PRIMARY KEY AUTOINCREMENT,
             email         TEXT UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
+            is_active     INTEGER DEFAULT 0,
             created_at    TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS email_whitelist (
+            id        INTEGER PRIMARY KEY AUTOINCREMENT,
+            email     TEXT UNIQUE NOT NULL,
+            added_at  TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 0")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # column already exists, that's fine
     conn.commit()
     conn.close()
