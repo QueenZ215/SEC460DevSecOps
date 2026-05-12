@@ -17,6 +17,7 @@ def send_confirmation_email(email):
     confirm_url = url_for("auth.confirm_email", token=token, _external=True)
     msg =Message(
         subject="Confirm your Nightwatch account",
+        sender=current_app.config["MAIL_DEFAULT_SENDER"],
         recipients=[email],
         body=f"Click the link below to confirm your account. The link expires in 24 hours.\n\n{confirm_url}\n\nIf you did not register for Nightwatch, ignore this email."
     )
@@ -134,4 +135,3 @@ def confirm_email(token):
 
     flash("Email confirmed. You can now log in.")
     return redirect(url_for("auth.login"))
-    
