@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nightwatch -- Register</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="auth-wrapper">
+  <div class="auth-card">
+  <h1>🌙 Nightwatch</h1>
+    <p class="auth-subtitle">Create an account</p>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <p class="error-message">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    <form method="POST">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required autofocus autocomplete="email">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required autocomplete="new-password">
+      <label for="confirm_password">Confirm password</label>
+      <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+      <button type="submit" class="btn-primary">Create account</button>
+      <p class="auth-link">Already have an account? <a href="/login">Sign in</a></p>
+    </form>
+  </div>
+</body>
+</html>

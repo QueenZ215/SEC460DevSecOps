@@ -8,7 +8,7 @@ def add_user(email, password):
     conn = sqlite3.connect(DB_PATH)
     try:
         conn.execute(
-            "INSERT INTO users (email, password_hash) VALUES (?, ?)",
+            "INSERT INTO users (email, password_hash) VALUES (?, ?, 1)",
             (email.strip().lower(), generate_password_hash(password))
         )
         conn.commit()
