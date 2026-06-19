@@ -1,5 +1,7 @@
 FROM python:3.12-alpine
 
+RUN apk update && apk upgrade --no-cache libcrypto3 libssl3
+
 RUN adduser -D -u 1001 nightwatch
 
 WORKDIR /app
