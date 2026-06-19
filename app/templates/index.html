@@ -8,21 +8,32 @@
 <body>
   <div class="page-header">
     <h1 class="page-title">🌙 Nightwatch</h1>
+    <a href="{{ url_for('main.keywords') }}" class="btn-signout">my keywords</a>
     <a href="/logout" class="btn-signout">sign out</a>
   </div>
   <p class="page-subtitle">{{ cves|length }} CVEs &nbsp;·&nbsp; sorted {{ sort }}ending by score</p>
 
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  {% for message in messages %}
+  <p class="error-message">{{ message }}</p>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+
   <div class="controls">
-    <span class="controls-label">sort:</span>
-    <a class="btn {{ 'active' if sort == 'desc' }}" href="?sort=desc&severity={{ severity }}">highest first</a>
-    <a class="btn {{ 'active' if sort == 'asc'  }}" href="?sort=asc&severity={{ severity }}">lowest first</a>
-    <span class="controls-label">severity:</span>
-    <a class="btn {{ 'active' if severity == 'all'      }}" href="?sort={{ sort }}&severity=all">all</a>
-    <a class="btn {{ 'active' if severity == 'critical' }}" href="?sort={{ sort }}&severity=critical">critical</a>
-    <a class="btn {{ 'active' if severity == 'high'     }}" href="?sort={{ sort }}&severity=high">high</a>
-    <a class="btn {{ 'active' if severity == 'medium'   }}" href="?sort={{ sort }}&severity=medium">medium</a>
-    <a class="btn {{ 'active' if severity == 'low'      }}" href="?sort={{ sort }}&severity=low">low</a>
-  </div>
+  <span class="controls-label">sort:</span>
+  <a class="btn {{ 'active' if sort == 'desc' }}" href="?sort=desc&severity={{ severity }}&relevant={{ '1' if relevant else '0' }}">highest first</a>
+  <a class="btn {{ 'active' if sort == 'asc'  }}" href="?sort=asc&severity={{ severity }}&relevant={{ '1' if relevant else '0' }}">lowest first</a>
+  <span class="controls-label">severity:</span>
+  <a class="btn {{ 'active' if severity == 'all'      }}" href="?sort={{ sort }}&severity=all&relevant={{ '1' if relevant else '0' }}">all</a>
+  <a class="btn {{ 'active' if severity == 'critical' }}" href="?sort={{ sort }}&severity=critical&relevant={{ '1' if relevant else '0' }}">critical</a>
+  <a class="btn {{ 'active' if severity == 'high'     }}" href="?sort={{ sort }}&severity=high&relevant={{ '1' if relevant else '0' }}">high</a>
+  <a class="btn {{ 'active' if severity == 'medium'   }}" href="?sort={{ sort }}&severity=medium&relevant={{ '1' if relevant else '0' }}">medium</a>
+  <a class="btn {{ 'active' if severity == 'low'      }}" href="?sort={{ sort }}&severity=low&relevant={{ '1' if relevant else '0' }}">low</a>
+  <span class="controls-label">filter:</span>
+  <a class="btn {{ 'active' if relevant }}" href="?sort={{ sort }}&severity={{ severity }}&relevant={{ '0' if relevant else '1' }}">relevant to me</a>
+</div>
 
   {% if cves %}
   <table>

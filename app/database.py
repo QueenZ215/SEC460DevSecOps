@@ -36,6 +36,16 @@ def init_db():
             added_at  TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS user_keywords (
+        id      INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        keyword TEXT NOT NULL,
+        UNIQUE(user_id, keyword),
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )
+""")
+
     try:
         conn.execute("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 0")
         conn.commit()
