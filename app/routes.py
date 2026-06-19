@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Blueprint, render_template, request, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from .database import get_db
 
