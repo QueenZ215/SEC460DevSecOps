@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Nightwatch -- My keywords</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+  <div class="page-header">
+    <h1 class="page-title">🌙 my keywords</h1>
+    <a href="{{ url_for('main.index') }}" class="btn-signout">back to dashboard</a>
+  </div>
+  <p class="page-subtitle">CVEs whose description matches any of these will show up under "relevant to me"</p>
+
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  {% for message in messages %}
+  <p class="error-message">{{ message }}</p>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  <form method="POST" action="{{ url_for('main.add_keyword') }}" class="controls">
+    <input type="text" name="keyword" placeholder="e.g. apache, siemens, windows" required>
+    <button type="submit" class="btn-primary">add</button>
+  </form>
+
+  {% if keywords %}
+  <table>
+    <thead><tr><th>keyword</th><th></th></tr></thead>
+    <tbody>
+      {% for kw in keywords %}
+      <tr>
+        <td>{{ kw.keyword }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('main.delete_keyword', keyword_id=kw.id) }}">
+            <button type="submit" class="btn">remove</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    <p>No keywords yet. Add one above.</p>
+  </div>
+  {% endif %}
+</body>
+</html>

@@ -189,6 +189,24 @@ a:hover {
     color: #c9d1d9;
     text-decoration: none;
 }
+.controls input[type="text"] {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+    padding: 0.4rem 0.7rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.controls input[type="text"]:focus {
+    outline: none;
+    border-color: #58a6ff;
+}
+
+.controls .btn-primary {
+    width: auto;
+}
 
 /* ============================================
     CVE Table
