@@ -69,7 +69,7 @@ def fetch_cves():
         if not vulns or start_index >= data.get("totalResults", 0):
             break
     return all_vulns
-    
+
 def save(vulns):
     conn = sqlite3.connect(DB_PATH)
     saved = 0
@@ -82,19 +82,21 @@ def save(vulns):
         )
         score = get_score(cve)
         try:
-            conn.execute(
+            cur = conn.execute(
                 """INSERT OR IGNORE INTO cves
                    (cve_id, description, cvss_score, severity, published, last_modified)
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 (cve_id, desc, score, score_to_severity(score),
                  cve.get("published", ""), cve.get("lastModified", ""))
             )
-            saved += 1
+            if cur.rowcount:
+                saved += 1
         except sqlite3.Error as e:
             print(f"  error on {cve_id}: {e}")
     conn.commit()
     conn.close()
     print(f"Saved {saved} of {len(vulns)} CVEs")
+    return saved
 
 if __name__ == "__main__":
     init_db()
