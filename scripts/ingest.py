@@ -47,18 +47,29 @@ def fetch_cves():
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=1)
     headers = {"apiKey": API_KEY} if API_KEY else {}
-    params = {
-        "pubStartDate": start.strftime("%Y-%m-%dT%H:%M:%S.000"),
-        "pubEndDate":   end.strftime("%Y-%m-%dT%H:%M:%S.000"),
-        "resultsPerPage": 100,
-    }
     session = requests.Session()
     retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
     session.mount("https://", HTTPAdapter(max_retries=retry))
-    resp = session.get(BASE_URL, params=params, headers=headers, timeout=60)
-    resp.raise_for_status()
-    return resp.json().get("vulnerabilities", [])
 
+    all_vulns = []
+    start_index = 0
+    while True:
+        params = {
+            "pubStartDate": start.strftime("%Y-%m-%dT%H:%M:%S.000"),
+            "pubEndDate":   end.strftime("%Y-%m-%dT%H:%M:%S.000"),
+            "resultsPerPage": 2000,
+            "startIndex": start_index,
+        }
+        resp = session.get(BASE_URL, params=params, headers=headers, timeout=60)
+        resp.raise_for_status()
+        data = resp.json()
+        vulns = data.get("vulnerabilities", [])
+        all_vulns.extend(vulns)
+        start_index += len(vulns)
+        if not vulns or start_index >= data.get("totalResults", 0):
+            break
+    return all_vulns
+    
 def save(vulns):
     conn = sqlite3.connect(DB_PATH)
     saved = 0
