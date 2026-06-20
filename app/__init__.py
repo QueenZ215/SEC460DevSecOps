@@ -36,4 +36,9 @@ def create_app():
     app.register_blueprint(main)
     app.register_blueprint(auth)
 
+    @app.after_request
+    def set_security_headers(response):
+        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        return response
+
     return app
