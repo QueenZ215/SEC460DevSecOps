@@ -47,17 +47,28 @@ def fetch_cves():
     end = datetime.now(timezone.utc)
     start = end - timedelta(days=1)
     headers = {"apiKey": API_KEY} if API_KEY else {}
-    params = {
-        "pubStartDate": start.strftime("%Y-%m-%dT%H:%M:%S.000"),
-        "pubEndDate":   end.strftime("%Y-%m-%dT%H:%M:%S.000"),
-        "resultsPerPage": 100,
-    }
     session = requests.Session()
     retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
     session.mount("https://", HTTPAdapter(max_retries=retry))
-    resp = session.get(BASE_URL, params=params, headers=headers, timeout=60)
-    resp.raise_for_status()
-    return resp.json().get("vulnerabilities", [])
+
+    all_vulns = []
+    start_index = 0
+    while True:
+        params = {
+            "pubStartDate": start.strftime("%Y-%m-%dT%H:%M:%S.000"),
+            "pubEndDate":   end.strftime("%Y-%m-%dT%H:%M:%S.000"),
+            "resultsPerPage": 2000,
+            "startIndex": start_index,
+        }
+        resp = session.get(BASE_URL, params=params, headers=headers, timeout=60)
+        resp.raise_for_status()
+        data = resp.json()
+        vulns = data.get("vulnerabilities", [])
+        all_vulns.extend(vulns)
+        start_index += len(vulns)
+        if not vulns or start_index >= data.get("totalResults", 0):
+            break
+    return all_vulns
 
 def save(vulns):
     conn = sqlite3.connect(DB_PATH)
@@ -71,19 +82,21 @@ def save(vulns):
         )
         score = get_score(cve)
         try:
-            conn.execute(
+            cur = conn.execute(
                 """INSERT OR IGNORE INTO cves
                    (cve_id, description, cvss_score, severity, published, last_modified)
                    VALUES (?, ?, ?, ?, ?, ?)""",
                 (cve_id, desc, score, score_to_severity(score),
                  cve.get("published", ""), cve.get("lastModified", ""))
             )
-            saved += 1
+            if cur.rowcount:
+                saved += 1
         except sqlite3.Error as e:
             print(f"  error on {cve_id}: {e}")
     conn.commit()
     conn.close()
     print(f"Saved {saved} of {len(vulns)} CVEs")
+    return saved
 
 if __name__ == "__main__":
     init_db()
